@@ -7,6 +7,7 @@ from supabase import create_client
 
 def main():
     # st.write(st.session_state)
+
     GITHUB_RAW_BASE = "https://raw.githubusercontent.com/bassignana/hair-colors/main/colors"
     supabase = create_client(st.secrets['URL'], st.secrets['KEY'])
 
@@ -19,9 +20,10 @@ def main():
             f'choice_{st.session_state.counter}']
         st.session_state.counter += 1
 
-    test, classifica, risultati = st.tabs(['Test', 'Classifica', 'Risultati'])
+    test, classifica, risultati, crediti = st.tabs(['Test', 'Classifica', 'Risultati', 'Crediti'])
 
     with test:
+        st.write("Quanto sei vittima della lobbie dei colori dei capelli? Fai il test e scoprilo!")
         if 'file_names' not in st.session_state:
             names = os.listdir(colors_folder_path)
             random.shuffle(names)
@@ -107,15 +109,16 @@ def main():
                     st.rerun()
 
     with classifica:
-            data = supabase.table("test_results").select("*").execute()
-            if data.data:
-                df_all = pd.DataFrame(data.data)
+        st.write("Ha senso una classifica in questo modo? No. Ma comunque se avete selezionato più di un biondo e un nero, non va bene.")
+        data = supabase.table("test_results").select("*").execute()
+        if data.data:
+            df_all = pd.DataFrame(data.data)
 
-                ranking = df_all.groupby('test_id')['corretto'].agg(['sum']).reset_index()
-                ranking.columns = ['test_id', 'corretti']
-                ranking = ranking.sort_values('corretti', ascending=False)
+            ranking = df_all.groupby('test_id')['corretto'].agg(['sum']).reset_index()
+            ranking.columns = ['test_id', 'corretti']
+            ranking = ranking.sort_values('corretti', ascending=False)
 
-                st.dataframe(ranking, hide_index=True)
+            st.dataframe(ranking, hide_index=True)
     with risultati:
         data = supabase.table("test_results").select("*").execute()
         if data.data:
@@ -132,6 +135,7 @@ def main():
                     },
                     hide_index=True
                 )
-
+    with crediti:
+        st.write("La redazione ringrazia un certo Jeffrey Dahmer per aver fornito le foto.")
 if __name__ == "__main__":
     main()
